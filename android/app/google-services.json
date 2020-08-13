@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "247528183798",
+    "firebase_url": "https://thermaldetection-36686.firebaseio.com",
+    "project_id": "thermaldetection-36686",
+    "storage_bucket": "thermaldetection-36686.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247528183798:android:a00412e7c2f6b6725219d7",
+        "android_client_info": {
+          "package_name": "com.testhcl.flutter_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "247528183798-45dt19227tidqjrboif6i144r7clp9h5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5Yd0G0XAr0lkXhIAybD9gWU2zGh-HvF8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "247528183798-45dt19227tidqjrboif6i144r7clp9h5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

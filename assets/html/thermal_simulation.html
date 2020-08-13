@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<head>
+    <title>
+        Thermal Detection Simulation
+    </title>
+    <style>
+        #main_container {
+            margin: 10px;
+            height: 40px;
+            padding: 10px;
+            width: 250px;
+            border: 1px solid black;
+            display: flex;
+            flex-direction: row;
+            border-radius: 5px;
+            background-color: lightblue;
+        }
+        
+        #stop_recording,
+        #start_recording {
+            border: 1px solid black;
+            border-radius: 5px;
+            color: black;
+            height: 25px;
+            width: 75px;
+            background-color: lightgray;
+            cursor: pointer;
+            margin-right: 10px;
+            text-align: center;
+            user-select: none;
+        }
+        
+        #stop_recording:hover,
+        #start_recording:hover {
+            box-shadow: black 2px 2px 1px;
+        }
+        
+        #stop_recording:active,
+        #start_recording:active {
+            box-shadow: black 1px 1px 2px;
+        }
+        
+        #cam_feed_output {
+            height: 300px;
+            width: 400px;
+            border: 1px solid black;
+            border-radius: 5px;
+        }
+        
+        #simulate {
+            height: 30px;
+            width: 200px;
+            background-color: lightblue;
+            border-radius: 5px;
+            box-shadow: black 1px 1px 2px;
+            cursor: pointer;
+            margin-left: 10px;
+            padding: 3px;
+        }
+        
+        .simulate_on {
+            -webkit-filter: url(#duotone);
+            filter: url(#duotone);
+        }
+        
+        .defs-only {
+            position: absolute;
+            height: 0;
+            width: 0;
+            overflow: none;
+            left: -100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div>Your web cam feed will appear here..</div>
+    <video id="cam_feed_output" autoplay="true">
+    </video>
+    <svg class="defs-only">
+        <filter id="duotone" color-interpolation-filters="sRGB"
+                x="0" y="0" height="100%" width="100%">
+          <feColorMatrix type="matrix"
+            values="0.90 0 0 0   0.40 
+                    0.95 0 0 0  -0.10  
+                   -0.20 0 0 0   0.65 
+                      0  0 0 1   0" />
+        </filter>
+    </svg>
+    <div id="main_container">
+        <div id="start_recording">
+            Start
+        </div>
+        <div id="stop_recording">
+            Stop
+        </div>
+        <select id="select"></select>
+    </div>
+    <div id="simulate">Simulate Thermal detection</div>
+</body>
+<script>
+    var mediaDevices = navigator.mediaDevices.getUserMedia || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    var allDevices = navigator.mediaDevices.enumerateDevices();
+
+    simulate.addEventListener("click", function() {
+        cam_feed_output.classList.add("simulate_on");
+    });
+
+    var devices;
+    allDevices.then(function(deviceList) {
+        devices = deviceList;
+        var select = document.getElementById("select");
+        let i = 0;
+        for (device of deviceList) {
+            var newOption = document.createElement('option');
+            var optionText = null;
+            if (device.kind.toString().includes("video")) {
+                optionText = document.createTextNode(" camera " + i);
+
+                console.log("detected : " +
+                    device.kind.toString());
+                i++;
+                // set option text
+                newOption.appendChild(optionText);
+                // and option value
+                newOption.setAttribute('value', device.label);
+                select.appendChild(newOption);
+            }
+
+
+        }
+
+    }).catch(function(err) {
+        devices = undefined;
+        console.log("error obtained in device enumeration: " + err);
+    });
+    var cam_feed_output = document.getElementById("cam_feed_output");
+    start_recording.addEventListener("click", function() {
+        if (mediaDevices) {
+            navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: {
+                    height: cam_feed_output.clientHeight,
+                    width: cam_feed_output.clientWidth
+                }
+            }).then(function(mediaStream) {
+
+                cam_feed_output.srcObject = mediaStream;
+                stop_recording.addEventListener("click", function() {
+                    cam_feed_output.src = null;
+                    if (mediaStream != null) {
+                        for (track of mediaStream.getTracks()) {
+                            track.stop();
+                        }
+                    }
+                    mediaStream = null;
+
+                });
+            }).catch(function(err) {
+                alert("An error occured :" + err);
+            });
+        } else {
+            alert("An error occured. MediaDevices are not supported.");
+        }
+    });
+</script>
+
+</html>

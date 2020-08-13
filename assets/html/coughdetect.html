@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<head>
+    <title>
+        Smart Detect - Voice analysis
+    </title>
+    <style>
+        body {
+            padding: 0px;
+            margin: 0px;
+            overflow-x: hidden;
+            height: 100%;
+            width: 100%;
+        }
+        
+        #main_container {
+            margin: 10px;
+            height: 40px;
+            padding: 10px;
+            width: 250px;
+            border: 1px solid black;
+            display: flex;
+            flex-direction: row;
+            border-radius: 5px;
+            background-color: lightblue;
+        }
+        
+        #stop_recording,
+        #start_recording {
+            border: 1px solid black;
+            border-radius: 5px;
+            color: black;
+            height: 25px;
+            width: 75px;
+            background-color: lightgray;
+            cursor: pointer;
+            margin-right: 10px;
+            text-align: center;
+            user-select: none;
+        }
+        
+        #header {
+            margin: 10px;
+        }
+        
+        #stop_recording:hover,
+        #start_recording:hover {
+            box-shadow: black 2px 2px 1px;
+        }
+        
+        #stop_recording:active,
+        #start_recording:active {
+            box-shadow: black 1px 1px 2px;
+        }
+        
+        #sampler_output {
+            margin: 10px;
+            border-radius: 10px;
+            background-color: black;
+            height: 80px;
+            width: 90%;
+        }
+        
+        #speech_recognition {
+            margin: 10px;
+            height: 200px;
+            width: 80%;
+            background-color: lightcyan;
+            color: black;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main_container">
+        <div id="start_recording">Start</div>
+        <div id="stop_recording">Stop</div>
+    </div>
+    <div id="header"><span>Voice Sampling</span></div>
+    <svg id="sampler_output"></svg>
+    <div id="header"><span>Speech Recognition</span></div>
+    <textarea id="speech_recognition" placeholder="Speech recognition area"></textarea>
+
+
+</body>
+<script>
+    //API for audio recording:
+    var mediaDevices = navigator.mediaDevices.getUserMedia || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    // var mediaDevices = navigator.mediaDevices.getUserMedia;
+    var recognition = new webkitSpeechRecognition() ||
+        root.mozSpeechRecognition ||
+        root.msSpeechRecognition ||
+        root.oSpeechRecognition ||
+        root.SpeechRecognition;
+    recognition.continuous = true;
+    start_recording.addEventListener("click", function() {
+
+        console.log("clicked");
+        startRec();
+    });
+
+    function startRec() {
+        navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: false
+        }).then(function(mediaStream) {
+
+
+            recognition.onstart = function() {
+
+                setTimeout(() => {
+                    document.getElementById('speech_recognition').placeholder = "Started Recorder, Now Try Say Something";
+                }, 1000);
+            }
+            recognition.onresult = function(event) {
+                console.log(event);
+                var speech_recognition = document.getElementById("speech_recognition");
+                speech_recognition.innerHTML = "";
+
+                for (var i = 0; i < event.results.length; i++) {
+                    console.log(event.results[i][0].transcript);
+                    speech_recognition.innerHTML = speech_recognition.innerHTML + event.results[i][0].transcript;
+                }
+            }
+            recognition.start();
+
+            recognition.onend = function() {
+
+                setTimeout(() => {
+                    document.getElementById('speech_recognition').placeholder = "recognition has stopped";
+                }, 1000);
+
+            }
+
+            var ctx = new AudioContext();
+
+            var audioSrc = ctx.createMediaStreamSource(mediaStream);
+            var analyser = ctx.createAnalyser();
+            analyser.smoothingTimeConstant = 0.3;
+            analyser.fftSize = 1024;
+            // we have to connect the MediaElementSource with the analyser 
+            audioSrc.connect(analyser);
+
+            // we could configure the analyser: e.g. analyser.fftSize (for further infos read the spec)
+
+            // frequencyBinCount tells you how many values you'll receive from the analyser
+            var frequencyData = new Uint8Array(analyser.frequencyBinCount);
+
+            // we're ready to receive some data!
+            // loop
+            var frame = null;
+
+            function renderFrame() {
+                svg.innerHTML = "";
+                makeHorizontalLine();
+                var maxValue = 130;
+                var x1 = 0;
+                var y1 = constraints.maxHeight / 2;
+                var x2 = 0;
+                var y2 = y1;
+                frame = requestAnimationFrame(renderFrame);
+                // update data in frequencyData
+                analyser.getByteFrequencyData(frequencyData);
+                // render frame based on values in frequencyData
+                // console.log(frequencyData);
+
+                // console.log(frequencyData);
+
+                for (let i = 0; i < frequencyData.length; i++) {
+                    x1 += 2;
+                    var data = frequencyData[i];
+                    // console.log(data);
+                    var percent = findPercentage(data);
+                    var value = findPercentile(percent / 2);
+                    y1 = (svg.clientHeight / 2) - value;
+                    x2 = x1;
+                    y2 = (svg.clientHeight / 2) + value;
+                    console.log(" x1: " + x1 + " y1: " + y1 + " x2: " + x2 + " y2 : " + y2 + " percent : " + percent);
+                    plotSamples(x1, y1, x2, y2);
+                    // console.log(data);
+                }
+
+            }
+            renderFrame();
+            stop_recording.addEventListener("click", function() {
+                if ((mediaStream != undefined || mediaStream != null) && (mediaStream.getTracks() != null || mediaStream.getTracks() != undefined)) {
+                    for (track of mediaStream.getTracks()) {
+                        track.stop();
+                    }
+                }
+
+                mediaStream = null;
+                cancelAnimationFrame(frame);
+            });
+        }).catch(function(err) {
+            console.log("error detected : " + err);
+        });
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+    //SVG for sampling
+    var svg = document.getElementById("sampler_output");
+    var lineElement = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+    function makeHorizontalLine() {
+        lineElement.setAttribute('x1', '0');
+        lineElement.setAttribute('y1', svg.clientHeight / 2);
+        lineElement.setAttribute('x2', svg.clientWidth);
+        lineElement.setAttribute('y2', svg.clientHeight / 2);
+        lineElement.setAttribute('stroke', 'lightgray');
+        lineElement.setAttribute('stroke-width', '1');
+        svg.appendChild(lineElement);
+    }
+
+
+
+    var constraints = {
+        // maxHeight: svg.clientHeight,
+        maxHeight: svg.clientHeight,
+        maxWidth: svg.clientWidth,
+        strokeColor: "lightgray"
+    }
+
+    function plotSamples(x1, y1, x2, y2) {
+
+        var h_line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        h_line.setAttribute("x1", x1);
+        h_line.setAttribute("y1", y1);
+        h_line.setAttribute("x2", x2);
+        h_line.setAttribute("y2", y2);
+        h_line.setAttribute("stroke", "lightgray");
+        h_line.setAttribute("stroke-width", "0.7");
+        svg.appendChild(h_line);
+
+    }
+
+
+
+
+    function findPercentage(value) {
+        var maxValue = 130;
+        var percentage = (value / maxValue) * 100;
+        // console.log(Math.round(percentage));
+        return Math.round(percentage);
+
+    }
+
+    function findPercentile(percentage) {
+        var value = (percentage * constraints.maxHeight) / 100;
+        // console.log(Math.round(value));
+        return Math.round(value);
+
+    }
+
+    window.onload = makeHorizontalLine();
+</script>
+
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<head>
+    <title>
+        Discussion forum - Get your answers from Covid volunteers and doctors
+    </title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            font-size: small;
+            margin: 50px;
+            padding: 0px;
+            overflow-x: hidden;
+            width: auto;
+        }
+        
+        #demoDiv {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        #listView>div {
+            margin-bottom: 50px;
+            width: auto;
+            padding: 10px;
+        }
+        
+        #participant_container_1,
+        #participant_container_3,
+        #participant_container_4,
+        #participant_container_6 {
+            margin-right: 40px;
+        }
+        
+        #participant_container_2,
+        #participant_container_5 {
+            margin-left: 40px;
+        }
+        
+        #participant_name {
+            margin-bottom: 5px;
+            width: fit-content;
+            padding: 5px;
+            border-radius: 10px;
+        }
+        
+        div[id*="participant_container"] {
+            border-radius: 10px;
+            width: fit-content;
+        }
+        
+        div[id*="participant_name"] {
+            height: 20px;
+            font-size: medium;
+            width: fit-content;
+        }
+        
+        #participant_container_1,
+        #participant_container_5 {
+            background: #8590c7;
+            color: white;
+        }
+        
+        #participant_container_1 #participant_name {
+            background: #1A237E;
+            color: white;
+            font-style: italic;
+        }
+        
+        #participant_container_2,
+        #participant_container_5 {
+            background: #7eb881;
+            color: white;
+        }
+        
+        #participant_container_2 #participant_name,
+        #participant_container_5 #participant_name {
+            background: #1B5E20;
+            color: white;
+            font-style: italic;
+        }
+        
+        #participant_container_3,
+        #participant_container_6 {
+            background: #b586bd;
+            color: white;
+        }
+        
+        #participant_container_3 #participant_name,
+        #participant_container_6 #participant_name {
+            background: #4A148C;
+            color: white;
+            font-style: italic;
+        }
+        
+        #participant_container_4 {
+            background: #8590c7;
+            color: white;
+        }
+        
+        #participant_container_4 #participant_name {
+            background: #1A237E;
+            color: white;
+            font-style: italic;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            body {
+                background-color: lightblue;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="demoDiv">
+        <div id="listView">
+            <div id="participant_container_1">
+                <div id="participant_name">Jegathesh Kumar R</div>
+                <div id="Text">Hi there! I'm new to this pandemic situation, recently my neighbours got affected. Should I be worried much ?</div>
+            </div>
+            <div id="participant_container_2">
+                <div id="participant_name">You</div>
+                <div id="Text">Hi Jegathesh, you've asked this at the right time. Don't panic, but keep track of all the safety measures, you'll soon be fine.</div>
+            </div>
+            <div id="participant_container_3">
+                <div id="participant_name">Satheesh P</div>
+                <div id="Text">Hi Varsha, I hope you're doing well too. Hey Jegathesh, just stay indoors, keep social distancing, and ensure to sanitize anything you receive before using it.</div>
+            </div>
+            <div id="participant_container_4">
+                <div id="participant_name">Jegathesh</div>
+                <div id="Text">Thanks Satheesh, Varsha.. those suggestions really helps.</div>
+            </div>
+            <div id="participant_container_5">
+                <div id="participant_name">You</div>
+                <div id="Text">Cheers!</div>
+            </div>
+            <div id="participant_container_6">
+                <div id="participant_name">Satheesh</div>
+                <div id="Text">No problem Jegathesh, reach us anytime. Happy to help!</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

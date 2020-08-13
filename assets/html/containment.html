@@ -1,0 +1,2608 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Containment detection</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQE1mKW4pAxSdaweFGd_yF78zPNpD7PYI&callback=initMap&libraries=&v=weekly" defer></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <style>
+        #map {
+            height: 800px;
+            width: 800px;
+        }
+        
+        #toolTipContainer {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            height: auto;
+            width: 450px;
+            border-radius: 10px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            background-color: wheat;
+            margin: 20px;
+        }
+        
+        #toolTipHeading {
+            height: auto;
+            width: auto;
+            font-family: 'Montserrat', sans-serif;
+            font-size: medium;
+            color: brown;
+            font-weight: bold;
+            background-color: aliceblue;
+            border-radius: 10px;
+            margin: 3px;
+            padding: 7px;
+        }
+        
+        #toolTipMainContent {
+            height: auto;
+            width: auto;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: medium;
+            color: black;
+            font-weight: normal;
+            background-color: aliceblue;
+            border-radius: 10px;
+            margin: 3px;
+            padding: 7px;
+        }
+        
+        #myLocation {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 350px;
+            float: right;
+            height: 27px;
+            width: 160px;
+            margin: 20px;
+            background-color: lightsalmon;
+            box-shadow: 2px 2px 2px black;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 3px;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        #myLocation:active {
+            box-shadow: 1px 1px 1px black;
+        }
+        
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>Test Map
+    <div style="display: flex;flex-direction: row;">
+        <div id="map"></div>
+        <div style="display: flex;flex-direction: column;">
+            <div id="toolTipContainer">
+                <div id="toolTipHeading">Please click on the area inside the containment zone to display the data</div>
+                <div id="toolTipMainContent">Your information will appear here once clicked.</div>
+            </div>
+            <div id="myLocation">Go to mylocation</div>
+        </div>
+    </div>
+
+</body>
+<script>
+    //AIzaSyBQE1mKW4pAxSdaweFGd_yF78zPNpD7PYI
+
+
+var zoneMap = [{
+        "city": "Mumbai",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "12691836",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "18.987807",
+        "lng": "72.836447",
+        "affected": "18977"
+    },
+    {
+        "city": "Delhi",
+        "admin": "Delhi",
+        "country": "India",
+        "population": "7633213",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "28.651952",
+        "lng": "77.231495",
+        "affected": "15926"
+    },
+    {
+        "city": "Kolkata",
+        "admin": "West Bengal",
+        "country": "India",
+        "population": "46392",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "22.562627",
+        "lng": "88.363044",
+        "affected": "14700"
+    },
+    {
+        "city": "Chennai",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "28063",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "13.084622",
+        "lng": "80.248357",
+        "affected": "73000"
+    },
+    {
+        "city": "Bengal\u016bru",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "54047",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "12.977063",
+        "lng": "77.587106",
+        "affected": "18000"
+    },
+    {
+        "city": "Hyderabad",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "3597816",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "17.384052",
+        "lng": "78.456355",
+        "affected": "66000"
+    },
+    {
+        "city": "Ahmad\u0101b\u0101d",
+        "admin": "Gujar\u0101t",
+        "country": "India",
+        "population": "3719710",
+        "iso2": "IN",
+        "capital": "minor",
+        "lat": "23.025793",
+        "lng": "72.587265",
+        "affected": "45224"
+    },
+    {
+        "city": "H\u0101ora",
+        "admin": "West Bengal",
+        "country": "India",
+        "population": "1027672",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "22.576882",
+        "lng": "88.318566",
+        "affected": "98554"
+    },
+    {
+        "city": "Pune",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "2935744",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "18.513271",
+        "lng": "73.849852",
+        "affected": "78250"
+    },
+    {
+        "city": "S\u016brat",
+        "admin": "Gujar\u0101t",
+        "country": "India",
+        "population": "2894504",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "21.195944",
+        "lng": "72.830232",
+        "affected": "1452"
+    },
+    {
+        "city": "Mard\u0101npur",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "2823249",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.430066",
+        "lng": "80.267176",
+        "affected": "1589"
+    },
+    {
+        "city": "R\u0101mpura",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "2711758",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.884682",
+        "lng": "75.789336",
+        "affected": "2581"
+    },
+    {
+        "city": "Lucknow",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "2472011",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "26.839281",
+        "lng": "80.923133",
+        "affected": "5828"
+    },
+    {
+        "city": "N\u0101ra",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "2228018",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "21.203096",
+        "lng": "79.089284",
+        "affected": "59875"
+    },
+    {
+        "city": "Patna",
+        "admin": "Bih\u0101r",
+        "country": "India",
+        "population": "1599920",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "25.615379",
+        "lng": "85.101027",
+        "affected": "2158"
+    },
+    {
+        "city": "Indore",
+        "admin": "Madhya Pradesh",
+        "country": "India",
+        "population": "1837041",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "22.717736",
+        "lng": "75.85859",
+        "affected": "15475"
+    },
+    {
+        "city": "Vadodara",
+        "admin": "Gujar\u0101t",
+        "country": "India",
+        "population": "1409476",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "22.299405",
+        "lng": "73.208119",
+        "affected": "2588"
+    },
+    {
+        "city": "Bhopal",
+        "admin": "Madhya Pradesh",
+        "country": "India",
+        "population": "1599914",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "23.254688",
+        "lng": "77.402892",
+        "affected": "36521"
+    },
+    {
+        "city": "Coimbatore",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "959823",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "11.005547",
+        "lng": "76.966122",
+        "affected": "15478"
+    },
+    {
+        "city": "Ludhi\u0101na",
+        "admin": "Punjab",
+        "country": "India",
+        "population": "1545368",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "30.912042",
+        "lng": "75.853789",
+        "affected": "4581"
+    },
+    {
+        "city": "\u0100gra",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "1430055",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.187935",
+        "lng": "78.003944",
+        "affected": "9856"
+    },
+    {
+        "city": "Kaly\u0101n",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "1576614",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.243703",
+        "lng": "73.135537",
+        "affected": "1578"
+    },
+    {
+        "city": "Vish\u0101khapatnam",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "1063178",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "17.704052",
+        "lng": "83.297663",
+        "affected": "78561"
+    },
+    {
+        "city": "Kochi",
+        "admin": "Kerala",
+        "country": "India",
+        "population": "604696",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "9.947743",
+        "lng": "76.253802",
+        "affected": "1581"
+    },
+    {
+        "city": "N\u0101sik",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "1289497",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.999963",
+        "lng": "73.776887",
+        "affected": "65741"
+    },
+    {
+        "city": "Meerut",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "1223184",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.980018",
+        "lng": "77.706356",
+        "affected": "58471"
+    },
+    {
+        "city": "Far\u012bd\u0101b\u0101d",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "1394000",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.411236",
+        "lng": "77.313162",
+        "affected": "154782"
+    },
+    {
+        "city": "V\u0101r\u0101nasi",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "1164404",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.31774",
+        "lng": "83.005811",
+        "affected": "13000"
+    },
+    {
+        "city": "Gh\u0101zi\u0101b\u0101d",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "1199191",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.665353",
+        "lng": "77.439148",
+        "affected": "3589"
+    },
+    {
+        "city": "\u0100sansol",
+        "admin": "West Bengal",
+        "country": "India",
+        "population": "1328000",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "23.683333",
+        "lng": "86.983333",
+        "affected": "9852"
+    },
+    {
+        "city": "Jamshedpur",
+        "admin": "Jharkhand",
+        "country": "India",
+        "population": "616338",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "22.802776",
+        "lng": "86.185448",
+        "affected": "54815"
+    },
+    {
+        "city": "Madurai",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "909908",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "9.917347",
+        "lng": "78.119622",
+        "affected": "5698"
+    },
+    {
+        "city": "Jabalpur",
+        "admin": "Madhya Pradesh",
+        "country": "India",
+        "population": "1030168",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "23.174495",
+        "lng": "79.935903",
+        "affected": "8500"
+    },
+    {
+        "city": "R\u0101jkot",
+        "admin": "Gujar\u0101t",
+        "country": "India",
+        "population": "1099882",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "22.291606",
+        "lng": "70.793217",
+        "affected": "7852"
+    },
+    {
+        "city": "Dhanb\u0101d",
+        "admin": "Jharkhand",
+        "country": "India",
+        "population": "219636",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "23.801988",
+        "lng": "86.443244",
+        "affected": "962"
+    },
+    {
+        "city": "Amritsar",
+        "admin": "Punjab",
+        "country": "India",
+        "population": "1092450",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "31.622337",
+        "lng": "74.875335",
+        "affected": "15202"
+    },
+    {
+        "city": "Warangal",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "865527",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "17.978423",
+        "lng": "79.600209",
+        "affected": "8153"
+    },
+    {
+        "city": "Allah\u0101b\u0101d",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "1073438",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.44478",
+        "lng": "81.843217",
+        "affected": "7895"
+    },
+    {
+        "city": "Sr\u012bnagar",
+        "admin": "Jammu and Kashm\u012br",
+        "country": "India",
+        "population": "975857",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "34.085652",
+        "lng": "74.805553",
+        "affected": "6578"
+    },
+    {
+        "city": "Aurang\u0101b\u0101d",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "1016441",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.880943",
+        "lng": "75.346739",
+        "affected": "15421"
+    },
+    {
+        "city": "Bhilai",
+        "admin": "Chhatt\u012bsgarh",
+        "country": "India",
+        "population": "1097000",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "21.209188",
+        "lng": "81.428497",
+        "affected": "35456"
+    },
+    {
+        "city": "Sol\u0101pur",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "961112",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "17.671523",
+        "lng": "75.910437",
+        "affected": "98754"
+    },
+    {
+        "city": "Ranchi",
+        "admin": "Jharkhand",
+        "country": "India",
+        "population": "846454",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "23.347768",
+        "lng": "85.338564",
+        "affected": "9852"
+    },
+    {
+        "city": "Jodhpur",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "921476",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.26841",
+        "lng": "73.005943",
+        "affected": "14523"
+    },
+    {
+        "city": "Guw\u0101h\u0101ti",
+        "admin": "Assam",
+        "country": "India",
+        "population": "17516",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.176076",
+        "lng": "91.762932",
+        "affected": "98874"
+    },
+    {
+        "city": "Chandigarh",
+        "admin": "Chand\u012bgarh",
+        "country": "India",
+        "population": "914371",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "30.736292",
+        "lng": "76.788398",
+        "affected": "6654"
+    },
+    {
+        "city": "Gwalior",
+        "admin": "Madhya Pradesh",
+        "country": "India",
+        "population": "882458",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.229825",
+        "lng": "78.173369",
+        "affected": "144896"
+    },
+    {
+        "city": "Thiruvananthapuram",
+        "admin": "Kerala",
+        "country": "India",
+        "population": "784153",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "8.485498",
+        "lng": "76.949238",
+        "affected": "4750"
+    },
+    {
+        "city": "Tiruchchir\u0101ppalli",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "775484",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "10.815499",
+        "lng": "78.696513",
+        "affected": "9515"
+    },
+    {
+        "city": "Hubli",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "792804",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "15.349955",
+        "lng": "75.138619",
+        "affected": "4447"
+    },
+    {
+        "city": "Mysore",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "868313",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "12.292664",
+        "lng": "76.638543",
+        "affected": "9855"
+    },
+    {
+        "city": "Raipur",
+        "admin": "Chhatt\u012bsgarh",
+        "country": "India",
+        "population": "679995",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "21.233333",
+        "lng": "81.633333",
+        "affected": "141"
+    },
+    {
+        "city": "Salem",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "778396",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "11.651165",
+        "lng": "78.158672",
+        "affected": "800"
+    },
+    {
+        "city": "Bhubaneshwar",
+        "admin": "Odisha",
+        "country": "India",
+        "population": "762243",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "20.272411",
+        "lng": "85.833853",
+        "affected": "1502"
+    },
+    {
+        "city": "Kota",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "763088",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.182544",
+        "lng": "75.839065",
+        "affected": "3520"
+    },
+    {
+        "city": "Jh\u0101nsi",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "412927",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.458872",
+        "lng": "78.579943",
+        "affected": "7584"
+    },
+    {
+        "city": "Bareilly",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "745435",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.347023",
+        "lng": "79.421934",
+        "affected": "1452"
+    },
+    {
+        "city": "Al\u012bgarh",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "753207",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.881453",
+        "lng": "78.07464",
+        "affected": "9856"
+    },
+    {
+        "city": "Bhiwandi",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "707035",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.300229",
+        "lng": "73.058813",
+        "affected": "7852"
+    },
+    {
+        "city": "Jammu",
+        "admin": "Jammu and Kashm\u012br",
+        "country": "India",
+        "population": "465567",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "32.735686",
+        "lng": "74.869112",
+        "affected": "6581"
+    },
+    {
+        "city": "Mor\u0101d\u0101b\u0101d",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "721139",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.838931",
+        "lng": "78.776838",
+        "affected": "1255"
+    },
+    {
+        "city": "Mangalore",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "417387",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "12.865371",
+        "lng": "74.842432",
+        "affected": "1452"
+    },
+    {
+        "city": "Kolh\u0101pur",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "561841",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "16.695633",
+        "lng": "74.231669",
+        "affected": "7000"
+    },
+    {
+        "city": "Amr\u0101vati",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "603837",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "20.933272",
+        "lng": "77.75152",
+        "affected": "7341"
+    },
+    {
+        "city": "Dehra D\u016bn",
+        "admin": "Uttarakhand",
+        "country": "India",
+        "population": "578420",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "30.324427",
+        "lng": "78.033922",
+        "affected": "71223"
+    },
+    {
+        "city": "M\u0101legaon Camp",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "435362",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "20.569974",
+        "lng": "74.515415",
+        "affected": "69044"
+    },
+    {
+        "city": "Nellore",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "404158",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "14.449918",
+        "lng": "79.986967",
+        "affected": "67804"
+    },
+    {
+        "city": "Gop\u0101lpur",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "674246",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.735389",
+        "lng": "83.38064",
+        "affected": "67446"
+    },
+    {
+        "city": "Shimoga",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "319550",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "13.932424",
+        "lng": "75.572555",
+        "affected": "6055"
+    },
+    {
+        "city": "Tirupp\u016br",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "444543",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "11.104096",
+        "lng": "77.346402",
+        "affected": "8073"
+    },
+    {
+        "city": "Raurkela",
+        "admin": "Odisha",
+        "country": "India",
+        "population": "483629",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "22.224964",
+        "lng": "84.864143",
+        "affected": "6231"
+    },
+    {
+        "city": "N\u0101nded",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "550564",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.160227",
+        "lng": "77.314971",
+        "affected": "6208"
+    },
+    {
+        "city": "Belgaum",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "610189",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "15.862643",
+        "lng": "74.508534",
+        "affected": "6056"
+    },
+    {
+        "city": "S\u0101ngli",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "601214",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "16.856777",
+        "lng": "74.569196",
+        "affected": "6114"
+    },
+    {
+        "city": "Ch\u0101nda",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "328351",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.950758",
+        "lng": "79.295229",
+        "affected": "5918"
+    },
+    {
+        "city": "Ajmer",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "517911",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.452103",
+        "lng": "74.638667",
+        "affected": "5895"
+    },
+    {
+        "city": "Cuttack",
+        "admin": "Odisha",
+        "country": "India",
+        "population": "580000",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "20.522922",
+        "lng": "85.78813",
+        "affected": "800"
+    },
+    {
+        "city": "B\u012bkaner",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "395908",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.017623",
+        "lng": "73.314955",
+        "affected": "5705"
+    },
+    {
+        "city": "Bh\u0101vnagar",
+        "admin": "Gujar\u0101t",
+        "country": "India",
+        "population": "464602",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "21.774455",
+        "lng": "72.152496",
+        "affected": "5578"
+    },
+    {
+        "city": "Hisar",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "301249",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "29.153938",
+        "lng": "75.722944",
+        "affected": "5429"
+    },
+    {
+        "city": "Bil\u0101spur",
+        "admin": "Chhatt\u012bsgarh",
+        "country": "India",
+        "population": "330106",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "22.080046",
+        "lng": "82.155431",
+        "affected": "54454"
+    },
+    {
+        "city": "Tirunelveli",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "435844",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "8.725181",
+        "lng": "77.684519",
+        "affected": "5428"
+    },
+    {
+        "city": "Gunt\u016br",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "530577",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "16.299737",
+        "lng": "80.457293",
+        "affected": "5077"
+    },
+    {
+        "city": "Shiliguri",
+        "admin": "West Bengal",
+        "country": "India",
+        "population": "515574",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.710035",
+        "lng": "88.428512",
+        "affected": "5574"
+    },
+    {
+        "city": "Ujjain",
+        "admin": "Madhya Pradesh",
+        "country": "India",
+        "population": "457346",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "23.182387",
+        "lng": "75.776433",
+        "affected": "3350"
+    },
+    {
+        "city": "Davangere",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "435125",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "14.469237",
+        "lng": "75.92375",
+        "affected": "50564"
+    },
+    {
+        "city": "Akola",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "428857",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "20.709569",
+        "lng": "76.998103",
+        "affected": "5502"
+    },
+    {
+        "city": "Sah\u0101ranpur",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "484873",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "29.967896",
+        "lng": "77.545221",
+        "affected": "4873"
+    },
+    {
+        "city": "Gulbarga",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "481478",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "17.335827",
+        "lng": "76.83757",
+        "affected": "4615"
+    },
+    {
+        "city": "Bh\u0101tp\u0101ra",
+        "admin": "West Bengal",
+        "country": "India",
+        "population": "483129",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "22.866431",
+        "lng": "88.401129",
+        "affected": "429"
+    },
+    {
+        "city": "Dh\u016blia",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "366980",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "20.901299",
+        "lng": "74.777373",
+        "affected": "4573"
+    },
+    {
+        "city": "Udaipur",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "422784",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "24.57951",
+        "lng": "73.690508",
+        "affected": "46737"
+    },
+    {
+        "city": "Bellary",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "336681",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "15.142049",
+        "lng": "76.92398",
+        "affected": "5388"
+    },
+    {
+        "city": "Tuticorin",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "436094",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "8.805038",
+        "lng": "78.151884",
+        "affected": "464"
+    },
+    {
+        "city": "Kurnool",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "278124",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "15.828865",
+        "lng": "78.036021",
+        "affected": "4214"
+    },
+    {
+        "city": "Gaya",
+        "admin": "Bih\u0101r",
+        "country": "India",
+        "population": "423692",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "24.796858",
+        "lng": "85.003852",
+        "affected": "4212"
+    },
+    {
+        "city": "S\u012bkar",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "237579",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.614778",
+        "lng": "75.138671",
+        "affected": "4400"
+    },
+    {
+        "city": "Tumk\u016br",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "307359",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "13.341358",
+        "lng": "77.102203",
+        "affected": "39706"
+    },
+    {
+        "city": "Kollam",
+        "admin": "Kerala",
+        "country": "India",
+        "population": "1463",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "8.881131",
+        "lng": "76.584694",
+        "affected": "3963"
+    },
+    {
+        "city": "Ahmadnagar",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "367140",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.094571",
+        "lng": "74.738432",
+        "affected": "31760"
+    },
+    {
+        "city": "Bh\u012blw\u0101ra",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "326431",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.347071",
+        "lng": "74.640812",
+        "affected": "39911"
+    },
+    {
+        "city": "Niz\u0101m\u0101b\u0101d",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "305438",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "18.673151",
+        "lng": "78.10008",
+        "affected": "3885"
+    },
+    {
+        "city": "Parbhani",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "289629",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.268553",
+        "lng": "76.770807",
+        "affected": "37826"
+    },
+    {
+        "city": "Shillong",
+        "admin": "Megh\u0101laya",
+        "country": "India",
+        "population": "354325",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "25.573987",
+        "lng": "91.896807",
+        "affected": "37527"
+    },
+    {
+        "city": "L\u0101t\u016br",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "348967",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "18.399487",
+        "lng": "76.584252",
+        "affected": "34394"
+    },
+    {
+        "city": "R\u0101jap\u0101laiyam",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "307959",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "9.451111",
+        "lng": "77.556121",
+        "affected": "36999"
+    },
+    {
+        "city": "Bh\u0101galpur",
+        "admin": "Bih\u0101r",
+        "country": "India",
+        "population": "361548",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.244462",
+        "lng": "86.971832",
+        "affected": "36158"
+    },
+    {
+        "city": "Muzaffarnagar",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "349706",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "29.470914",
+        "lng": "77.703324",
+        "affected": "34906"
+    },
+    {
+        "city": "Muzaffarpur",
+        "admin": "Bih\u0101r",
+        "country": "India",
+        "population": "333200",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.122593",
+        "lng": "85.390553",
+        "affected": "3200"
+    },
+    {
+        "city": "Mathura",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "330511",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.503501",
+        "lng": "77.672145",
+        "affected": "30511"
+    },
+    {
+        "city": "Pati\u0101la",
+        "admin": "Punjab",
+        "country": "India",
+        "population": "329224",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "30.336245",
+        "lng": "76.392199",
+        "affected": "29224"
+    },
+    {
+        "city": "Saugor",
+        "admin": "Madhya Pradesh",
+        "country": "India",
+        "population": "247333",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "23.838766",
+        "lng": "78.738738",
+        "affected": "3240"
+    },
+    {
+        "city": "Brahmapur",
+        "admin": "Odisha",
+        "country": "India",
+        "population": "324726",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.311514",
+        "lng": "84.792903",
+        "affected": "32726"
+    },
+    {
+        "city": "Sh\u0101hb\u0101zpur",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "320434",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.874116",
+        "lng": "79.879327",
+        "affected": "0434"
+    },
+    {
+        "city": "New Delhi",
+        "admin": "Delhi",
+        "country": "India",
+        "population": "317797",
+        "iso2": "IN",
+        "capital": "primary",
+        "lat": "28.6",
+        "lng": "77.2",
+        "affected": "3797"
+    },
+    {
+        "city": "Rohtak",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "317245",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.894473",
+        "lng": "76.589166",
+        "affected": "3245"
+    },
+    {
+        "city": "Samlaip\u0101dar",
+        "admin": "Odisha",
+        "country": "India",
+        "population": "162887",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "21.478072",
+        "lng": "83.990505",
+        "affected": "3152"
+    },
+    {
+        "city": "Ratl\u0101m",
+        "admin": "Madhya Pradesh",
+        "country": "India",
+        "population": "236843",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "23.330331",
+        "lng": "75.040315",
+        "affected": "30722"
+    },
+    {
+        "city": "F\u012broz\u0101b\u0101d",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "306409",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.150917",
+        "lng": "78.397808",
+        "affected": "3069"
+    },
+    {
+        "city": "R\u0101jahmundry",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "304804",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "17.005171",
+        "lng": "81.777839",
+        "affected": "30404"
+    },
+    {
+        "city": "Barddham\u0101n",
+        "admin": "West Bengal",
+        "country": "India",
+        "population": "301725",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "23.255716",
+        "lng": "87.856906",
+        "affected": "3725"
+    },
+    {
+        "city": "B\u012bdar",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "204071",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "17.913309",
+        "lng": "77.530105",
+        "affected": "30136"
+    },
+    {
+        "city": "Bamanpur\u012b",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "296418",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.804495",
+        "lng": "79.040305",
+        "affected": "29618"
+    },
+    {
+        "city": "K\u0101kin\u0101da",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "292923",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "16.960361",
+        "lng": "82.238086",
+        "affected": "2923"
+    },
+    {
+        "city": "P\u0101n\u012bpat",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "292808",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "29.387471",
+        "lng": "76.968246",
+        "affected": "22808"
+    },
+    {
+        "city": "Khammam",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "170503",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "17.247672",
+        "lng": "80.143682",
+        "affected": "2939"
+    },
+    {
+        "city": "Bhuj",
+        "admin": "Gujar\u0101t",
+        "country": "India",
+        "population": "289429",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "23.253972",
+        "lng": "69.669281",
+        "affected": "29429"
+    },
+    {
+        "city": "Kar\u012bmnagar",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "228745",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "18.436738",
+        "lng": "79.13222",
+        "affected": "28251"
+    },
+    {
+        "city": "Tirupati",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "250821",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "13.635505",
+        "lng": "79.419888",
+        "affected": "87035"
+    },
+    {
+        "city": "Hospet",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "197846",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "15.269537",
+        "lng": "76.387103",
+        "affected": "86007"
+    },
+    {
+        "city": "Chikka Mandya",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "134845",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "12.545602",
+        "lng": "76.895078",
+        "affected": "85034"
+    },
+    {
+        "city": "Alwar",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "283228",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.566291",
+        "lng": "76.610202",
+        "affected": "283228"
+    },
+    {
+        "city": "Aizawl",
+        "admin": "Mizoram",
+        "country": "India",
+        "population": "265331",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "23.736701",
+        "lng": "92.714596",
+        "affected": "23021"
+    },
+    {
+        "city": "Bij\u0101pur",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "270870",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "16.827715",
+        "lng": "75.718988",
+        "affected": "71064"
+    },
+    {
+        "city": "Imphal",
+        "admin": "Manipur",
+        "country": "India",
+        "population": "223523",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "24.808053",
+        "lng": "93.944203",
+        "affected": "24986"
+    },
+    {
+        "city": "Tharati Etawah",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "257448",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.758236",
+        "lng": "79.014875",
+        "affected": "25748"
+    },
+    {
+        "city": "R\u0101ich\u016br",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "225962",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "16.205459",
+        "lng": "77.35567",
+        "affected": "25540"
+    },
+    {
+        "city": "Path\u0101nkot",
+        "admin": "Punjab",
+        "country": "India",
+        "population": "174306",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "32.274842",
+        "lng": "75.652865",
+        "affected": "25987"
+    },
+    {
+        "city": "Ch\u012br\u0101la",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "87001",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "15.823849",
+        "lng": "80.352187",
+        "affected": "23000"
+    },
+    {
+        "city": "Son\u012bpat",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "250521",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.994778",
+        "lng": "77.019375",
+        "affected": "50521"
+    },
+    {
+        "city": "Mirz\u0101pur",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "233691",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.144902",
+        "lng": "82.565335",
+        "affected": "45817"
+    },
+    {
+        "city": "H\u0101pur",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "242920",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.729845",
+        "lng": "77.780681",
+        "affected": "2920"
+    },
+    {
+        "city": "Porbandar",
+        "admin": "Gujar\u0101t",
+        "country": "India",
+        "population": "138872",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "21.641346",
+        "lng": "69.600868",
+        "affected": "23684"
+    },
+    {
+        "city": "Bharatpur",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "229384",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.215251",
+        "lng": "77.492786",
+        "affected": "29384"
+    },
+    {
+        "city": "Puducherry",
+        "admin": "Puducherry",
+        "country": "India",
+        "population": "227411",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "11.933812",
+        "lng": "79.829792",
+        "affected": "22411"
+    },
+    {
+        "city": "Karn\u0101l",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "225049",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "29.691971",
+        "lng": "76.984483",
+        "affected": "5049"
+    },
+    {
+        "city": "N\u0101gercoil",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "213858",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "8.177313",
+        "lng": "77.43437",
+        "affected": "229"
+    },
+    {
+        "city": "Thanj\u0101v\u016br",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "219571",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "10.785233",
+        "lng": "79.139093",
+        "affected": "571"
+    },
+    {
+        "city": "P\u0101li",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "207394",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.775125",
+        "lng": "73.320611",
+        "affected": "20103"
+    },
+    {
+        "city": "Agartala",
+        "admin": "Tripura",
+        "country": "India",
+        "population": "203264",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "23.836049",
+        "lng": "91.279386",
+        "affected": "2264"
+    },
+    {
+        "city": "Ongole",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "172872",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "15.503565",
+        "lng": "80.044541",
+        "affected": "2060"
+    },
+    {
+        "city": "Puri",
+        "admin": "Odisha",
+        "country": "India",
+        "population": "201026",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "19.798254",
+        "lng": "85.824938",
+        "affected": "1026"
+    },
+    {
+        "city": "Dindigul",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "200797",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "10.362853",
+        "lng": "77.975827",
+        "affected": "2797"
+    },
+    {
+        "city": "Haldia",
+        "admin": "West Bengal",
+        "country": "India",
+        "population": "200762",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "22.025278",
+        "lng": "88.058333",
+        "affected": "20762"
+    },
+    {
+        "city": "Bulandshahr",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "198612",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.403922",
+        "lng": "77.857731",
+        "affected": "8612"
+    },
+    {
+        "city": "Purnea",
+        "admin": "Bih\u0101r",
+        "country": "India",
+        "population": "198453",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.776703",
+        "lng": "87.473655",
+        "affected": "1453"
+    },
+    {
+        "city": "Proddat\u016br",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "177797",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "14.7502",
+        "lng": "78.548129",
+        "affected": "7451"
+    },
+    {
+        "city": "Gurgaon",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "197340",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.460105",
+        "lng": "77.026352",
+        "affected": "7340"
+    },
+    {
+        "city": "Kh\u0101n\u0101pur",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "197233",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "21.273716",
+        "lng": "76.117376",
+        "affected": "1233"
+    },
+    {
+        "city": "Machil\u012bpatnam",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "192827",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "16.187466",
+        "lng": "81.13888",
+        "affected": "19827"
+    },
+    {
+        "city": "Bhiw\u0101ni",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "190855",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.793044",
+        "lng": "76.13968",
+        "affected": "19855"
+    },
+    {
+        "city": "Nandy\u0101l",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "165337",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "15.477994",
+        "lng": "78.483605",
+        "affected": "18654"
+    },
+    {
+        "city": "Bhus\u0101val",
+        "admin": "Mah\u0101r\u0101shtra",
+        "country": "India",
+        "population": "172366",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "21.043649",
+        "lng": "75.785058",
+        "affected": "13001"
+    },
+    {
+        "city": "Bharauri",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "182218",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.598203",
+        "lng": "81.694709",
+        "affected": "1228"
+    },
+    {
+        "city": "Tonk",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "151331",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.168672",
+        "lng": "75.786111",
+        "affected": "1734"
+    },
+    {
+        "city": "Sirsa",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "160129",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "29.534893",
+        "lng": "75.028981",
+        "affected": "18139"
+    },
+    {
+        "city": "Vizianagaram",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "1194",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "18.11329",
+        "lng": "83.397743",
+        "affected": "17358"
+    },
+    {
+        "city": "Vellore",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "177081",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "12.905769",
+        "lng": "79.137104",
+        "affected": "7081"
+    },
+    {
+        "city": "Alappuzha",
+        "admin": "Kerala",
+        "country": "India",
+        "population": "176783",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "9.494647",
+        "lng": "76.331108",
+        "affected": "1783"
+    },
+    {
+        "city": "Shimla",
+        "admin": "Him\u0101chal Pradesh",
+        "country": "India",
+        "population": "173503",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "31.104423",
+        "lng": "77.166623",
+        "affected": "13503"
+    },
+    {
+        "city": "Hindupur",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "133298",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "13.828065",
+        "lng": "77.491425",
+        "affected": "1682"
+    },
+    {
+        "city": "B\u0101ram\u016bla",
+        "admin": "Jammu and Kashm\u012br",
+        "country": "India",
+        "population": "77276",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "34.209004",
+        "lng": "74.342853",
+        "affected": "16986"
+    },
+    {
+        "city": "Bakshpur",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "166480",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "25.894283",
+        "lng": "80.792104",
+        "affected": "6480"
+    },
+    {
+        "city": "Dibrugarh",
+        "admin": "Assam",
+        "country": "India",
+        "population": "122155",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.479888",
+        "lng": "94.90837",
+        "affected": "1366"
+    },
+    {
+        "city": "Said\u0101pur",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "164435",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.598784",
+        "lng": "80.75089",
+        "affected": "16435"
+    },
+    {
+        "city": "Navs\u0101ri",
+        "admin": "Gujar\u0101t",
+        "country": "India",
+        "population": "163000",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "20.85",
+        "lng": "72.916667",
+        "affected": "16300"
+    },
+    {
+        "city": "Budaun",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "161555",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.038114",
+        "lng": "79.126677",
+        "affected": "1615"
+    },
+    {
+        "city": "Cuddalore",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "158569",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "11.746289",
+        "lng": "79.764362",
+        "affected": "15869"
+    },
+    {
+        "city": "Har\u012bpur",
+        "admin": "Punjab",
+        "country": "India",
+        "population": "158142",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "31.463218",
+        "lng": "75.986418",
+        "affected": "15142"
+    },
+    {
+        "city": "Krishn\u0101puram",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "155029",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "12.869617",
+        "lng": "79.719469",
+        "affected": "15029"
+    },
+    {
+        "city": "Fyz\u0101b\u0101d",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "153047",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.775486",
+        "lng": "82.150182",
+        "affected": "15047"
+    },
+    {
+        "city": "Silchar",
+        "admin": "Assam",
+        "country": "India",
+        "population": "152393",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "24.827327",
+        "lng": "92.797868",
+        "affected": "15393"
+    },
+    {
+        "city": "Amb\u0101la",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "146787",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "30.360993",
+        "lng": "76.797819",
+        "affected": "16787"
+    },
+    {
+        "city": "Krishnanagar",
+        "admin": "West Bengal",
+        "country": "India",
+        "population": "145926",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "23.405761",
+        "lng": "88.490733",
+        "affected": "15926"
+    },
+    {
+        "city": "Kol\u0101r",
+        "admin": "Karn\u0101taka",
+        "country": "India",
+        "population": "126441",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "13.137679",
+        "lng": "78.129989",
+        "affected": "14625"
+    },
+    {
+        "city": "Kumbakonam",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "139264",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "10.959789",
+        "lng": "79.377472",
+        "affected": "1394"
+    },
+    {
+        "city": "Tiruvann\u0101malai",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "138243",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "12.230204",
+        "lng": "79.072954",
+        "affected": "1243"
+    },
+    {
+        "city": "P\u012blibh\u012bt",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "131008",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "28.631245",
+        "lng": "79.804362",
+        "affected": "131008"
+    },
+    {
+        "city": "Abohar",
+        "admin": "Punjab",
+        "country": "India",
+        "population": "130603",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "30.144533",
+        "lng": "74.19552",
+        "affected": "1303"
+    },
+    {
+        "city": "Port Blair",
+        "admin": "Andaman and Nicobar Islands",
+        "country": "India",
+        "population": "112050",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "11.666667",
+        "lng": "92.75",
+        "affected": "1562"
+    },
+    {
+        "city": "Al\u012bpur Du\u0101r",
+        "admin": "West Bengal",
+        "country": "India",
+        "population": "127342",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.4835",
+        "lng": "89.522855",
+        "affected": "7342"
+    },
+    {
+        "city": "Hat\u012bsa",
+        "admin": "Uttar Pradesh",
+        "country": "India",
+        "population": "126882",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "27.592698",
+        "lng": "78.013843",
+        "affected": "1882"
+    },
+    {
+        "city": "V\u0101lp\u0101rai",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "90353",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "10.325163",
+        "lng": "76.955299",
+        "affected": "14308"
+    },
+    {
+        "city": "Aurang\u0101b\u0101d",
+        "admin": "Bih\u0101r",
+        "country": "India",
+        "population": "95929",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "24.752037",
+        "lng": "84.374202",
+        "affected": "929"
+    },
+    {
+        "city": "Kohima",
+        "admin": "N\u0101g\u0101land",
+        "country": "India",
+        "population": "92113",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "25.674673",
+        "lng": "94.110988",
+        "affected": "913"
+    },
+    {
+        "city": "Gangtok",
+        "admin": "Sikkim",
+        "country": "India",
+        "population": "30700",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "27.325739",
+        "lng": "88.612155",
+        "affected": "7900"
+    },
+    {
+        "city": "Kar\u016br",
+        "admin": "Tamil N\u0101du ",
+        "country": "India",
+        "population": "76915",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "10.960277",
+        "lng": "78.076753",
+        "affected": "7695"
+    },
+    {
+        "city": "Jorh\u0101t",
+        "admin": "Assam",
+        "country": "India",
+        "population": "69033",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.757509",
+        "lng": "94.203055",
+        "affected": "633"
+    },
+    {
+        "city": "Panaji",
+        "admin": "Goa",
+        "country": "India",
+        "population": "65586",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "15.498289",
+        "lng": "73.824541",
+        "affected": "5586"
+    },
+    {
+        "city": "Saidpur",
+        "admin": "Jammu and Kashm\u012br",
+        "country": "India",
+        "population": "58416",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "34.318174",
+        "lng": "74.457093",
+        "affected": "630"
+    },
+    {
+        "city": "Tezpur",
+        "admin": "Assam",
+        "country": "India",
+        "population": "58851",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "26.633333",
+        "lng": "92.8",
+        "affected": "581"
+    },
+    {
+        "city": "Itanagar",
+        "admin": "Arun\u0101chal Pradesh",
+        "country": "India",
+        "population": "44971",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "27.102349",
+        "lng": "93.692047",
+        "affected": "4971"
+    },
+    {
+        "city": "Daman",
+        "admin": "Dam\u0101n and Diu",
+        "country": "India",
+        "population": "39737",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "20.414315",
+        "lng": "72.83236",
+        "affected": "9737"
+    },
+    {
+        "city": "Silvassa",
+        "admin": "D\u0101dra and Nagar Haveli",
+        "country": "India",
+        "population": "27359",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "20.273855",
+        "lng": "72.996728",
+        "affected": "2359"
+    },
+    {
+        "city": "Diu",
+        "admin": "Dam\u0101n and Diu",
+        "country": "India",
+        "population": "23779",
+        "iso2": "IN",
+        "capital": "",
+        "lat": "20.715115",
+        "lng": "70.987952",
+        "affected": "2779"
+    },
+    {
+        "city": "Dispur",
+        "admin": "Assam",
+        "country": "India",
+        "population": "16140",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "26.135638",
+        "lng": "91.800688",
+        "affected": "1140"
+    },
+    {
+        "city": "Kavaratti",
+        "admin": "Lakshadweep",
+        "country": "India",
+        "population": "10688",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "10.566667",
+        "lng": "72.616667",
+        "affected": "1088"
+    },
+    {
+        "city": "Calicut",
+        "admin": "Kerala",
+        "country": "India",
+        "population": "",
+        "iso2": "IN",
+        "capital": "minor",
+        "lat": "11.248016",
+        "lng": "75.780402",
+        "affected": "4587"
+    },
+    {
+        "city": "Kagazn\u0101g\u0101r",
+        "admin": "Andhra Pradesh",
+        "country": "India",
+        "population": "",
+        "iso2": "IN",
+        "capital": "minor",
+        "lat": "19.331589",
+        "lng": "79.466051",
+        "affected": "5689"
+    },
+    {
+        "city": "Jaipur",
+        "admin": "R\u0101jasth\u0101n",
+        "country": "India",
+        "population": "",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "26.913312",
+        "lng": "75.787872",
+        "affected": "7882"
+    },
+    {
+        "city": "Ghandinagar",
+        "admin": "Gujar\u0101t",
+        "country": "India",
+        "population": "",
+        "iso2": "IN",
+        "capital": "admin",
+        "lat": "23.216667",
+        "lng": "72.683333",
+        "affected": "7850"
+    },
+    {
+        "city": "Panchkula",
+        "admin": "Hary\u0101na",
+        "country": "India",
+        "population": "",
+        "iso2": "IN",
+        "capital": "minor",
+        "lat": "30.691512",
+        "lng": "76.853736",
+        "affected": "1120"
+    }
+];
+
+
+    function findMaximum(zoneMap) {
+        let affected_array = [];
+        for (zone of zoneMap) {
+            affected_array.push(Number(zone.affected));
+        }
+
+        let biggest_affected = affected_array[0];
+        for (affected of affected_array) {
+            if (affected > biggest_affected) {
+                biggest_affected = affected;
+            }
+        }
+        return biggest_affected;
+    }
+
+    console.log(" : " + findMaximum(zoneMap));
+
+    var map = undefined;
+
+    function initMap() {
+        // Create the map.
+
+
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 6,
+            center: {
+                lat: 9.917347,
+                lng: 78.119622
+            },
+            mapTypeId: "roadmap"
+        });
+
+        //mapsMouseEvent.latLng.toString()
+
+
+
+        var fill_Opacity = null;
+
+
+        for (var zone of zoneMap) {
+
+            var percentage = findpercentage(zone.affected, findMaximum(zoneMap));
+
+            if (percentage > 0 && percentage <= 30) {
+                fill_Opacity = 0.25;
+            } else if (percentage > 30 && percentage <= 50) {
+                fill_Opacity = 0.35;
+            } else if (percentage > 50 && percentage <= 80) {
+                fill_Opacity = 0.45;
+            } else {
+                fill_Opacity = 0.80;
+            }
+
+            createMapCircle(fill_Opacity, zone.city, zone.admin, Number(zone.lat), Number(zone.lng), zone.affected, map);
+        }
+        var myLocation = document.getElementById("myLocation");
+        myLocation.addEventListener('click', function() {
+
+            navigator.geolocation.getCurrentPosition(gotoMyLocation);
+
+        });
+    }
+
+    // Map.addListener('zoom_changed', function() {
+    //     infowindow.setContent('Zoom: ' + map.getZoom());
+    // });
+
+    function gotoMyLocation(position) {
+
+
+        map.setCenter(new google.maps.LatLng(position.coords.latitude, position.coords.longitude));
+        map.setZoom(10);
+        // map.setGestureHandling('greedy');
+
+    }
+
+
+    function findpercentage(affected, biggest_affected) {
+
+        let percentage = affected / biggest_affected * 100;
+        return percentage;
+
+    }
+
+    // function invisCircle(cityCircle, map) {
+    //     cityCircle.setMap(cityCircle.getMap() ? null : map);
+    // }
+    var cityCircle = undefined;
+
+    function createMapCircle(fill_Opacity, cityName, district, lati, lngi, affected, Map) {
+        position = {
+            lat: lati,
+            lng: lngi
+        }
+
+        var contentString = "<div style='height:auto;width:auto;display:flex; flex-direction:column; padding:8px;'><div>" + cityName + ", " + district + "</div><div>Affected count:" + affected + "</div></div>";
+
+        var infowindow = new google.maps.InfoWindow({
+            content: contentString
+        });
+        var z_Index = 0;
+        if (fill_Opacity == 0.25) {
+            z_Index = 4;
+        } else if (fill_Opacity == 0.35) {
+            z_Index = 3;
+        } else if (fill_Opacity == 0.45) {
+            z_Index = 2;
+        } else if (fill_Opacity == 0.80) {
+            z_Index = 1;
+        }
+
+        cityCircle = new google.maps.Circle({
+            strokeColor: "#FF0000",
+            strokeOpacity: 0.8,
+            strokeWeight: 0.3,
+            fillColor: "#FF0000",
+            fillOpacity: fill_Opacity,
+            map: Map,
+            center: position,
+            radius: Math.sqrt(affected) * 250,
+            zIndex: z_Index
+        });
+        cityCircle.addListener("click", function(mapsMouseEvent) {
+            populateGeoAddress(mapsMouseEvent.latLng);
+        });
+
+        cityCircle.addListener("mouseover", function() {
+
+            infowindow.setPosition(this.getCenter());
+            infowindow.open(Map);
+        });
+        cityCircle.addListener("mouseout", function() {
+            infowindow.close();
+        });
+    }
+
+    function populateGeoAddress(position) {
+
+        var toolTipHeading = document.getElementById('toolTipHeading');
+        var toolTipMainContent = document.getElementById('toolTipMainContent');
+
+        var latitude = undefined;
+        var longitude = undefined;
+        var pos_str = position.toString();
+        var latLngArray = pos_str.split(",");
+        for (obj of latLngArray) {
+            if (obj.toString().indexOf("(") != -1) {
+                latitude = obj.toString().substring(1);
+            } else {
+                longitude = obj.toString().substring(1, obj.toString().length - 1);
+            }
+        }
+
+        //https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&key=YOUR_API_KEY
+        $.ajax({
+            url: "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&key=AIzaSyBQE1mKW4pAxSdaweFGd_yF78zPNpD7PYI",
+            type: 'GET',
+            success: function(res) {
+                // console.log(res);
+                toolTipHeading.innerHTML = res["results"]["0"]["formatted_address"];
+                toolTipMainContent.innerHTML = "<p>Latitude: " + latitude + " Longitude:" + longitude + "</p>" + "<p> Affected count: " + Math.ceil(Math.random() * 1000) + " </p>";
+            },
+            error: function(err) {
+                console.error("https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latlng.lat + "," + latlng.lng + "&key=");
+            }
+        });
+
+    }
+</script>
+
+</html>
